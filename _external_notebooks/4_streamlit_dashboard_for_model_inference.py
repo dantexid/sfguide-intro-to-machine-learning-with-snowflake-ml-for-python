@@ -1,5 +1,6 @@
 # Import python packages
 import streamlit as st
+import json
 from snowflake.snowpark.context import get_active_session
 
 # Snowpark for Python
@@ -23,7 +24,22 @@ st.write(
 )
 
 # Set up the session
-session = get_active_session()
+connection_parameters = json.load(open('connection.json'))
+session = Session.builder.configs(connection_parameters).create()
+session.sql_simplifier_enabled = True
+
+snowflake_environment = session.sql('SELECT current_user(), current_version()').collect()
+snowpark_version = VERSION
+
+# Current Environment Details
+print('\nConnection Established with the following parameters:')
+print('User                        : {}'.format(snowflake_environment[0][0]))
+print('Role                        : {}'.format(session.get_current_role()))
+print('Database                    : {}'.format(session.get_current_database()))
+print('Schema                      : {}'.format(session.get_current_schema()))
+print('Warehouse                   : {}'.format(session.get_current_warehouse()))
+print('Snowflake version           : {}'.format(snowflake_environment[0][1]))
+print('Snowpark for Python version : {}.{}.{}'.format(snowpark_version[0],snowpark_version[1],snowpark_version[2]))
 db = identifier._get_unescaped_name(session.get_current_database())
 schema = identifier._get_unescaped_name(session.get_current_schema())
 
